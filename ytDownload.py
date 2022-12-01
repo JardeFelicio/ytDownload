@@ -1,4 +1,4 @@
-from pytube import YouTube
+from pytube import YouTube,Playlist
 from PyQt5 import  uic,QtWidgets
 import os
 
@@ -65,10 +65,17 @@ def downloadVideo():
     # recebendo url do video
     try:
         yt = YouTube(str(telaDowload.lineEditLink.text()))
-    except:
+    except Exception as e:
+        
+        print(e)
         telaDowload.textInfoMotiv.setText("Entre com um URL de Youtube válido.")
         return
+        
     
+    playlist = Playlist(yt)
+    
+    print(len(playlist))
+
     #verificando se arquivo já exixte
     arquivo=dirVideo+'\\'+yt.title+'.mp4'
     
@@ -102,6 +109,116 @@ def downloadVideo():
         telaDowload.textInfo.setText("Download não realizado, Arquivo já existe.")
         return
 
+def playlistVideo():
+    """Realiza o download do vídeo"""
+
+    #limpando mensagens
+    telaDowload.textInfo.setText(" ")
+    telaDowload.textInfoMotiv.setText(" ")
+    
+    # recebendo url do video
+
+    try:
+        try:
+            yt = YouTube(str(telaDowload.lineEditLink.text()))
+        except:
+            yt_playlist = Playlist(str(telaDowload.lineEditLink.text()))
+    except Exception as e:
+        
+        print(e)
+        telaDowload.textInfoMotiv.setText("Entre com um URL de Youtube válido.")
+        return
+        
+    
+    print(len(yt_playlist))
+    if len(yt_playlist)>0:
+        
+
+        for yt_url in yt_playlist:
+            yt = YouTube(str(yt_url))
+            #verificando se arquivo já exixte
+            arquivo=dirVideo+'\\'+yt.title+'.mp4'
+            
+            if os.path.isfile(arquivo):
+                telaDowload.textInfoMotiv.setText("Download não realizado, Arquivo já existe.")
+                return
+
+            # extraindo video de alta qualidade
+            try:
+                video = yt.streams.get_highest_resolution()
+            except:
+                telaDowload.textInfoMotiv.setText("URL Inválido para Download de Video.")
+                return
+
+            # download do arquivo
+            try:
+                telaDowload.textInfo.setText("Carregando...")
+                out_file = video.download(output_path=dirVideo)
+            except:
+                telaDowload.textInfoMotiv.setText("Erro no download, verifique o link.")
+                return
+            
+            # salvando arquivo
+            try:
+                base, ext = os.path.splitext(out_file)
+                new_file = base + '.mp4'
+                os.rename(out_file, new_file)
+                # mostra resultado
+                telaDowload.textInfo.setText(yt.title[0:50] + "  |  Download - MP4 - concluído.")
+            except:
+                telaDowload.textInfo.setText("Download não realizado, Arquivo já existe.")
+                return
+    else:
+         # recebendo url do video
+        try:
+            yt = YouTube(str(telaDowload.lineEditLink.text()))
+        except Exception as e:
+            
+            print(e)
+            telaDowload.textInfoMotiv.setText("Entre com um URL de Youtube válido.")
+            return
+            
+        
+        playlist = Playlist(yt)
+        
+        print(len(playlist))
+
+        #verificando se arquivo já exixte
+        arquivo=dirVideo+'\\'+yt.title+'.mp4'
+        
+        if os.path.isfile(arquivo):
+            telaDowload.textInfoMotiv.setText("Download não realizado, Arquivo já existe.")
+            return
+
+        # extraindo video de alta qualidade
+        try:
+            video = yt.streams.get_highest_resolution()
+        except:
+            telaDowload.textInfoMotiv.setText("URL Inválido para Download de Video.")
+            return
+
+        # download do arquivo
+        try:
+            telaDowload.textInfo.setText("Carregando...")
+            out_file = video.download(output_path=dirVideo)
+        except:
+            telaDowload.textInfoMotiv.setText("Erro no download, verifique o link.")
+            return
+        
+        # salvando arquivo
+        try:
+            base, ext = os.path.splitext(out_file)
+            new_file = base + '.mp4'
+            os.rename(out_file, new_file)
+            # mostra resultado
+            telaDowload.textInfo.setText(yt.title[0:50] + "  |  Download - MP4 - concluído.")
+        except:
+            telaDowload.textInfo.setText("Download não realizado, Arquivo já existe.")
+            return
+            
+
+
+
 def sair():
     """Sair do programa"""
     exit()
@@ -109,7 +226,7 @@ def sair():
 app=QtWidgets.QApplication([])
 telaDowload=uic.loadUi("telaYtDownload.ui")
 telaDowload.btnMP3.clicked.connect(downloadAudio)
-telaDowload.btnMP4.clicked.connect(downloadVideo)
+telaDowload.btnMP4.clicked.connect(playlistVideo)
 telaDowload.btn_close.clicked.connect(sair)
 
 telaDowload.show()
